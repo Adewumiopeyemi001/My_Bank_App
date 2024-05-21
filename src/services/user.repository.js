@@ -5,7 +5,10 @@ import bcrypt from "bcryptjs";
 export const checkExistingUser = async (email) => {
   return User.findOne({ email });
 };
-export const findByToken = async (otp) => {
+export const checkExistingUserByUsername = async (userName) => {
+  return User.findOne({ userName });
+};
+export const findByOtp = async (otp) => {
   return User.findOne({ otp });
 };
 

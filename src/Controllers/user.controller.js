@@ -1,11 +1,14 @@
 import User from "../Models/user.model.js";
-import { checkExistingUser } from "../services/user.repository.js";
+import { checkExistingPassword, checkExistingUser, checkExistingUserByUsername } from "../services/user.repository.js";
 import { errorResMsg, successResMsg } from "../utils/response.utils.js";
 import emailSenderTemplate from "../middlewares/email.js";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import path from "path";
 import ejs from "ejs";
+import generateOTP from "../utils/otpGenerator.js";
+import otpStore from "../utils/otpStore.js";
+
 
 
 export const register = async (req, res) => { 
@@ -27,22 +30,9 @@ export const register = async (req, res) => {
         return errorResMsg(res, 400, "User already exists");
       }
 
-      // Generate OTP
-      const generateOTP = () => {
-        const digits = "0123456789";
-        let OTP = "";
-        for (let i = 0; i < 6; i++) {
-          OTP += digits[Math.floor(Math.random() * 10)];
-        }
-        return OTP;
-      };
-
       const otp = generateOTP();
+      otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 };
 
-      const otpExpiration = new Date();
-      otpExpiration.setMinutes(
-        otpExpiration.getMinutes() + process.env.OTP_EXPIRATION_TIME_MINUTES
-      ); // Set expiration time
       const newUser = await User.create({
         firstName,
         lastName,
@@ -50,8 +40,6 @@ export const register = async (req, res) => {
         email,
         password,
         phoneNumber,
-        otp,
-        otpExpiration,
       });
 
       const currentFilePath = fileURLToPath(import.meta.url);
@@ -69,17 +57,17 @@ export const register = async (req, res) => {
           otp: otp,
         },
         async (err, data) => {
-          await emailSenderTemplate(
-            data,
-            "Verify Your Email - MyBankApp Account Confirmation",
-            email
-          );
+           await emailSenderTemplate(
+             data,
+             "Verify Your Email - MyBankApp Account Confirmation",
+             email
+           );
         }
       );
 
       return successResMsg(res, 201, {
         success: true,
-        message: "User created successfully",
+        message: "User registered successfully. Please check your email for the OTP.",
         data: newUser,
       });
     } catch (error) {
@@ -89,4 +77,71 @@ export const register = async (req, res) => {
            message: "Internal Server Error",
          });
     }
+};
+
+export const login = async (req, res) => {
+  try {
+    const { emailOrUsername, password } = req.body; // emailOrUsername can be either email or username
+    if (!emailOrUsername || !password) {
+      return errorResMsg(
+        res,
+        400,
+        "Please enter your email/username and password"
+      );
+    }
+
+    // Determine if the emailOrUsername is an email or username
+    const isEmail = emailOrUsername.includes("@");
+    let user;
+
+    if (isEmail) {
+      user = await checkExistingUser(emailOrUsername);
+    } else {
+      user = await checkExistingUserByUsername(emailOrUsername);
+    }
+
+    if (!user) {
+      return errorResMsg(res, 400, "User not found");
+    }
+
+    const passwordMatch = await checkExistingPassword(password, user);
+    if (!passwordMatch) {
+      return errorResMsg(res, 400, "Password does not match");
+    }
+
+    const token = user.generateAuthToken();
+
+
+    const currentFilePath = fileURLToPath(import.meta.url);
+    const currentDir = dirname(currentFilePath);
+    const templatePath = path.join(currentDir, "../Public/emails/login.ejs");
+
+    await ejs.renderFile(
+      templatePath,
+      {
+        title: `Hello ${user.userName},`,
+        body: "You Just login In",
+        userName: user.userName,
+      },
+      async (err, data) => {
+        await emailSenderTemplate(
+          data,
+          "Login Detected",
+          user.email
+        );
+      }
+    );
+
+    return successResMsg(res, 200, {
+      success: true,
+      message: "User Logged in Successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.error(error);
+    return errorResMsg(res, 500, {
+      error: error.message,
+      message: "Internal Server Error",
+    });
+  }
 };
