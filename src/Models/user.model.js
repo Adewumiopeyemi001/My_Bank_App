@@ -4,6 +4,10 @@ import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema(
   {
+    accountId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Account",
+    },
     firstName: {
       type: String,
       required: true,
@@ -77,16 +81,16 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    accountStatus: {
-      type: String,
-      enum: ["Pending", "Verified", "Closed", "Suspended"],
-      default: "Pending",
-    },
-    isAccountVerified: {
-      type: Boolean,
-      default: false,
-    },
-    
+    // accountStatus: {
+    //   type: String,
+    //   enum: ["Pending", "Verified", "Closed", "Suspended"],
+    //   default: "Pending",
+    // },
+    // isAccountVerified: {
+    //   type: Boolean,
+    //   default: false,
+    // },
+
     resetPasswordToken: {
       type: String,
       // required: true,
@@ -94,11 +98,11 @@ const userSchema = new mongoose.Schema(
     resetPasswordExpires: {
       type: Date,
     },
-    accountType: {
-      type: Number,
-      enum: [1, 2, 3, 4], // 1 = Savings, 2 = Current, 3 = Loan, 4 = Cooperate
-      default: 1,
-    },
+    // accountType: {
+    //   type: Number,
+    //   enum: [1, 2, 3, 4], // 1 = Savings, 2 = Current, 3 = Loan, 4 = Cooperate
+    //   default: 1,
+    // },
   },
   {
     timestamps: true,

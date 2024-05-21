@@ -3,6 +3,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import { connectDB } from "./src/Config/db.js";
 import usersRouter from "./src/Routes/user.router.js"
+import accountsRouter from "./src/Routes/account.router.js"
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/user", usersRouter);
+app.use("/api/account", accountsRouter);
 
 
 const server = app.listen(PORT, async () => {

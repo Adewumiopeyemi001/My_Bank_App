@@ -8,8 +8,6 @@ import ejs from "ejs";
 import emailSenderTemplate from "../middlewares/email.js";
 
 
-
-
 export const forgetPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -96,7 +94,7 @@ export const resetPassword = async (req, res) => {
     const currentDir = dirname(currentFilePath);
     const templatePath = path.join(
       currentDir,
-      "../Public/emails/resetpassword.ejs"
+      "../Public/emails/resetPassword.ejs"
     );
 
     await ejs.renderFile(
