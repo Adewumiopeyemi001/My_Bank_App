@@ -5,7 +5,7 @@ const accountSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
+      ref: "User",
       required: true,
     },
     accountNumber: {
@@ -29,6 +29,38 @@ const accountSchema = new mongoose.Schema(
     isAccountVerified: {
       type: Boolean,
       default: false,
+    },
+    // Verification documents
+    bvn: {
+      type: String,
+      unique: true,
+      trim: true,
+      validate: {
+        validator: function (value) {
+          return /^\d{11}$/.test(value);
+        },
+        message: "BVN must be exactly 11 digits.",
+      },
+    },
+    nin: {
+      type: String,
+      unique: true,
+      trim: true,
+      validate: {
+        validator: function (value) {
+          return /^\d{11}$/.test(value);
+        },
+        message: "NIN must be exactly 11 digits.",
+      },
+    },
+    utilityBill: {
+      type: String,
+    },
+    officeAddress: {
+      type: String,
+    },
+    letterHeadedPaper: {
+      type: String,
     },
   },
   {
