@@ -5,7 +5,6 @@ export const verifyAccount = async (req, res) => {
   try {
     const user = req.user;
     const accountId = req.params.id;
-    // console.log(accountId);
     const account = await Account.findById(accountId);
     if (!user) {
       return errorResMsg(res, 400, "User not found");
@@ -15,20 +14,20 @@ export const verifyAccount = async (req, res) => {
       return errorResMsg(res, 400, "Account not found");
     }
 
-    const {
-      bvn,
-      nin,
-      utilityBill,
-      officeAddress,
-      letterHeadedPaper,
-    } = req.body;
+    const { bvn, nin, utilityBill, officeAddress, letterHeadedPaper } =
+      req.body;
 
     let isVerified = false;
 
     if (account.accountType === "savings" && bvn && nin) {
       isVerified = true;
+      account.bvn = bvn;
+      account.nin = nin;
     } else if (account.accountType === "current" && bvn && nin && utilityBill) {
       isVerified = true;
+      account.bvn = bvn;
+      account.nin = nin;
+      account.utilityBill = utilityBill;
     } else if (
       account.accountType === "cooperate" &&
       bvn &&
@@ -38,11 +37,17 @@ export const verifyAccount = async (req, res) => {
       letterHeadedPaper
     ) {
       isVerified = true;
+      account.bvn = bvn;
+      account.nin = nin;
+      account.utilityBill = utilityBill;
+      account.officeAddress = officeAddress;
+      account.letterHeadedPaper = letterHeadedPaper;
     }
 
     if (isVerified) {
       account.accountStatus = "Verified";
       account.isAccountVerified = true;
+
       await account.save();
     }
     return successResMsg(res, 200, {

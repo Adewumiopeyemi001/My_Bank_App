@@ -6,7 +6,7 @@ const accountSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      // required: true,
     },
     accountNumber: {
       type: String,
@@ -62,6 +62,14 @@ const accountSchema = new mongoose.Schema(
     letterHeadedPaper: {
       type: String,
     },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
     timestamps: true,
@@ -91,6 +99,25 @@ accountSchema.pre("save", async function (next) {
       }
     }
     this.accountNumber = generatedNumber;
+  }
+
+  const user = this;
+  const existingAccount = await Account.findOne({
+    $or: [
+      { bvn: user.bvn },
+      { nin: user.nin },
+      { accountNumber: user.accountNumber },
+    ],
+  });
+  if (
+    existingAccount &&
+    existingAccount._id.toString() !== user._id.toString()
+  ) {
+    return next(
+      new Error(
+        "BVN, NIN, or account number already associated with another account"
+      )
+    );
   }
   next();
 });

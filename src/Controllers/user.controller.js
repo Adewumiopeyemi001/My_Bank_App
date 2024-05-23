@@ -104,6 +104,12 @@ export const login = async (req, res) => {
       return errorResMsg(res, 400, "User not found");
     }
 
+    if (!user.isEmailVerified) {
+      return res
+        .status(404)
+        .json({ message: "User Not Verified, Please check your email" });
+    }
+
     const passwordMatch = await checkExistingPassword(password, user);
     if (!passwordMatch) {
       return errorResMsg(res, 400, "Password does not match");
