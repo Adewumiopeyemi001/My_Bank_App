@@ -1,5 +1,10 @@
 import Account from "../Models/account.model.js";
 import { errorResMsg, successResMsg } from "../utils/response.utils.js";
+import emailSenderTemplate from "../middlewares/email.js"
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import path from "path";
+import ejs from "ejs";
 
 
 export const getUserProfile = async (req, res) => {
@@ -49,6 +54,26 @@ export const createAccount = async (req, res) => {
       userId: user._id,
     });
 
+    const currentFilePath = fileURLToPath(import.meta.url);
+    const currentDir = dirname(currentFilePath);
+    const templatePath = path.join(currentDir, "../Public/emails/account.ejs");
+
+    await ejs.renderFile(
+      templatePath,
+      {
+        title: `Hello ${user.firstName},`,
+        body: "Congratulations! Your New Account Number is Here",
+        accountNumber: account.accountNumber,
+      },
+      async (err, data) => {
+        await emailSenderTemplate(
+          data,
+          "Congratulations! Your New Account Number is Here",
+          user.email
+        );
+      }
+    );
+
     return successResMsg(res, 201, {
       success: true,
       data: account,
@@ -77,7 +102,7 @@ export const getAccountDetails = async (req, res) => {
     balance: account.balance,
     accountType: account.accountType,
     accountStatus: account.accountStatus,
-    createdOn: account.createdOn,
+    createdAt: account.createdAt
   };
   return successResMsg(res, 200, {
     success: true,

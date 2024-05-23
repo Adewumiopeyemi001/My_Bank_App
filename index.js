@@ -2,8 +2,9 @@ import express from "express";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import { connectDB } from "./src/Config/db.js";
-import usersRouter from "./src/Routes/user.router.js"
-import accountsRouter from "./src/Routes/account.router.js"
+import usersRouter from "./src/Routes/user.router.js";
+import accountsRouter from "./src/Routes/account.router.js";
+import transactionRouter from "./src/Routes/transaction.router.js";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/user", usersRouter);
 app.use("/api/account", accountsRouter);
+app.use("/api/transaction", transactionRouter);
 
 
 const server = app.listen(PORT, async () => {

@@ -1,5 +1,10 @@
-import Account from "../Models/account.model.js"; // adjust the import as needed
+import Account from "../Models/account.model.js"; 
 import { errorResMsg, successResMsg } from "../utils/response.utils.js";
+import emailSenderTemplate from "../middlewares/email.js"
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import path from "path";
+import ejs from "ejs";
 
 export const verifyAccount = async (req, res) => {
   try {
@@ -50,6 +55,28 @@ export const verifyAccount = async (req, res) => {
 
       await account.save();
     }
+    const currentFilePath = fileURLToPath(import.meta.url);
+    const currentDir = dirname(currentFilePath);
+    const templatePath = path.join(
+      currentDir,
+      "../Public/emails/accountverified.ejs"
+    );
+
+    await ejs.renderFile(
+      templatePath,
+      {
+        title: `Hello ${user.userName},`,
+        body: "Account Verified - You're All Set!",
+      },
+      async (err, data) => {
+        await emailSenderTemplate(
+          data,
+          "Account Verified - You're All Set!",
+          user.email
+        );
+      }
+    );
+
     return successResMsg(res, 200, {
       success: true,
       data: account,
